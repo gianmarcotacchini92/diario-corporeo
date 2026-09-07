@@ -438,6 +438,7 @@
     <div class="toolbar">
       <button class="ghost" id="btnExpBilancia">Esporta JSON</button>
       <button class="ghost" id="btnImpBilancia">Importa JSON</button>
+      <button class="ghost" id="btnSeedBilancia">↻ Ricarica storico iniziale</button>
       <button class="ghost" id="btnClrBilancia">Azzera scheda</button>
     </div>
   </div>
@@ -561,11 +562,14 @@
     { k: "acqua", l: "Acqua", u: "%", step: "0.1", dec: 1 },
     { k: "muscolo", l: "Massa muscolare", u: "kg", step: "0.1", dec: 1 },
     { k: "mb", l: "Metabolismo basale", u: "kcal", step: "1", dec: 0 },
-    { k: "viscerale", l: "Grasso viscerale", u: "", step: "1", dec: 0 },
+    { k: "viscerale", l: "Grasso viscerale", u: "", step: "0.5", dec: 1 },
     { k: "etaMet", l: "Età metabolica", u: "anni", step: "1", dec: 0 },
     { k: "bmi", l: "BMI", u: "", step: "0.1", dec: 1 }
   ];
-  const F_SCALE = F_BASE.concat([{ k: "punteggio", l: "Punteggio fisico", u: "", step: "1", dec: 0 }]);
+  const F_SCALE = F_BASE.concat([
+    { k: "punteggio", l: "Punteggio fisico", u: "", step: "1", dec: 0 },
+    { k: "ossea", l: "Massa ossea", u: "kg", step: "0.1", dec: 1 }
+  ]);
   const F_CIRC = [
     { k: "vita", l: "Vita", u: "cm", step: "0.5", dec: 1 },
     { k: "addomeCirc", l: "Addome", u: "cm", step: "0.5", dec: 1 },
@@ -601,6 +605,9 @@
 
   // Storico iniziale ricavato dal foglio "Weight Tracker".
   const SEED_NUTRI = [{"date":"2023-01-14","peso":82.6,"grasso":24.7,"acqua":52.3,"muscolo":59.1,"mb":1844,"viscerale":9,"etaMet":45,"bmi":30,"vita":95,"addomeCirc":96,"fianchi":97,"cosce":63,"petto":17,"addomePlica":21,"cosciaPlica":22,"sovrailiaca":21,"sottoscapola":24,"tricipiti":25},{"date":"2023-02-18","peso":79.6,"grasso":23.6,"acqua":52.9,"muscolo":57.8,"mb":1798,"viscerale":8,"etaMet":44,"bmi":28.9,"vita":93,"addomeCirc":94,"fianchi":95,"cosce":61,"petto":16,"addomePlica":18,"cosciaPlica":21,"sovrailiaca":18,"sottoscapola":21,"tricipiti":21},{"date":"2023-03-18","peso":78.9,"grasso":23.3,"acqua":53.6,"muscolo":57.5,"mb":1788,"viscerale":8,"etaMet":43,"bmi":28.6,"vita":91,"addomeCirc":93,"fianchi":94,"cosce":60,"petto":15,"addomePlica":16,"cosciaPlica":20,"sovrailiaca":16,"sottoscapola":21,"tricipiti":21},{"date":"2023-04-06","peso":76.9,"grasso":22.9,"acqua":54.7,"muscolo":56.3,"mb":1751,"viscerale":7,"etaMet":41,"bmi":27.9,"vita":89,"addomeCirc":91,"fianchi":92,"cosce":59,"petto":15,"addomePlica":15,"cosciaPlica":18,"sovrailiaca":15,"sottoscapola":18,"tricipiti":19},{"date":"2023-06-10","peso":75.9,"grasso":22.8,"acqua":55.5,"muscolo":55.7,"mb":1730,"viscerale":7,"etaMet":41,"bmi":27.5,"vita":87,"addomeCirc":90,"fianchi":91,"cosce":59,"petto":15,"addomePlica":15,"cosciaPlica":18,"sovrailiaca":14,"sottoscapola":17,"tricipiti":18},{"date":"2023-07-15","peso":78.4,"grasso":23.2,"acqua":54.6,"muscolo":57.2,"mb":1779,"viscerale":8,"etaMet":42,"bmi":28.5,"vita":89,"addomeCirc":92,"fianchi":92,"cosce":59,"petto":16,"addomePlica":16,"cosciaPlica":18,"sovrailiaca":15,"sottoscapola":16,"tricipiti":16},{"date":"2023-11-11","peso":76.5,"grasso":22.8,"acqua":54.6,"muscolo":56.1,"mb":1745,"viscerale":7,"etaMet":41,"bmi":27.8,"vita":88,"addomeCirc":90,"fianchi":91,"cosce":56,"petto":16,"addomePlica":15,"cosciaPlica":16,"sovrailiaca":14,"sottoscapola":16,"tricipiti":16},{"date":"2023-12-16","peso":75,"grasso":22.3,"acqua":54.7,"muscolo":55.4,"mb":1720,"viscerale":7,"etaMet":39,"bmi":27.2,"vita":86,"addomeCirc":89,"fianchi":90,"cosce":56,"petto":15,"addomePlica":14,"cosciaPlica":15,"sovrailiaca":12,"sottoscapola":14,"tricipiti":14},{"date":"2024-02-24","peso":77,"grasso":22.8,"acqua":54.5,"muscolo":56.4,"mb":1754,"viscerale":7,"etaMet":41,"bmi":27.9,"vita":88,"addomeCirc":91,"fianchi":91,"cosce":58,"petto":17,"addomePlica":16,"cosciaPlica":17,"sovrailiaca":13,"sottoscapola":18,"tricipiti":14},{"date":"2024-03-23","peso":77.3,"grasso":21.9,"acqua":55,"muscolo":57.4,"mb":1779,"viscerale":7,"etaMet":38,"bmi":28.1,"vita":87,"addomeCirc":90,"fianchi":90,"cosce":58,"petto":17,"addomePlica":14,"cosciaPlica":16,"sovrailiaca":14,"sottoscapola":16,"tricipiti":13},{"date":"2024-05-11","peso":75.6,"grasso":22.6,"acqua":55.4,"muscolo":55.6,"mb":1727,"viscerale":7,"etaMet":40,"bmi":27.4,"vita":85,"addomeCirc":88,"fianchi":90,"cosce":57,"petto":17,"addomePlica":14,"cosciaPlica":15,"sovrailiaca":13,"sottoscapola":14,"tricipiti":12},{"date":"2024-06-29","peso":78.8,"grasso":22.7,"acqua":53.7,"muscolo":57.9,"mb":1792,"viscerale":8,"etaMet":42,"bmi":28.6,"vita":89,"addomeCirc":92,"fianchi":92,"cosce":60,"petto":18,"addomePlica":15,"cosciaPlica":16,"sovrailiaca":14,"sottoscapola":15,"tricipiti":13},{"date":"2024-09-16","peso":77.4,"grasso":22.3,"acqua":53.1,"muscolo":57.1,"mb":1767,"viscerale":7,"etaMet":41,"bmi":28.1,"vita":87,"addomeCirc":91,"fianchi":90,"cosce":59,"petto":17,"addomePlica":14,"cosciaPlica":15,"sovrailiaca":14,"sottoscapola":13,"tricipiti":12},{"date":"2024-12-14","peso":76.2,"grasso":21.7,"acqua":53.5,"muscolo":56.7,"mb":1753,"viscerale":7,"etaMet":38,"bmi":27.7,"vita":86,"addomeCirc":91,"fianchi":90,"cosce":59,"petto":16,"addomePlica":14,"cosciaPlica":14,"sovrailiaca":13,"sottoscapola":13,"tricipiti":11},{"date":"2025-03-06","peso":77.2,"grasso":22.3,"acqua":53.5,"muscolo":57,"mb":1764,"viscerale":7,"etaMet":40,"bmi":28,"vita":87,"addomeCirc":92,"fianchi":90,"cosce":59,"petto":16,"addomePlica":14,"cosciaPlica":15,"sovrailiaca":15,"sottoscapola":15,"tricipiti":11},{"date":"2025-06-25","peso":76.5,"grasso":21.6,"acqua":55,"muscolo":57,"mb":1761,"viscerale":7,"etaMet":38,"bmi":27.8,"vita":86,"addomeCirc":91,"fianchi":90,"cosce":57,"petto":15,"addomePlica":14,"cosciaPlica":14,"sovrailiaca":14,"sottoscapola":14,"tricipiti":10},{"date":"2025-12-20","peso":75.2,"grasso":20,"acqua":54,"muscolo":57.2,"mb":1761,"viscerale":6,"etaMet":33,"bmi":27.3,"vita":84,"addomeCirc":90,"fianchi":88,"cosce":59,"petto":13,"addomePlica":12,"cosciaPlica":12,"sovrailiaca":12,"sottoscapola":12,"tricipiti":9}];
+
+  // Storico bilancia impedenziometrica (export CSV)
+  const SEED_SCALE = [{"date":"2023-01-14","peso":82.6,"grasso":24.7,"acqua":52.3,"muscolo":59.1,"mb":1844,"viscerale":9,"etaMet":45,"bmi":30,"punteggio":2,"ossea":3},{"date":"2023-02-18","peso":79.6,"grasso":23.6,"acqua":52.9,"muscolo":57.8,"mb":1798,"viscerale":8,"etaMet":44,"bmi":28.9,"punteggio":2,"ossea":3},{"date":"2023-03-18","peso":78.9,"grasso":23.3,"acqua":53.6,"muscolo":57.5,"mb":1788,"viscerale":8,"etaMet":43,"bmi":28.6,"punteggio":2,"ossea":3},{"date":"2023-04-08","peso":76.9,"grasso":22.9,"acqua":54.7,"muscolo":56.3,"mb":1751,"viscerale":7,"etaMet":41,"bmi":27.9,"punteggio":2,"ossea":3},{"date":"2023-06-10","peso":75.9,"grasso":22.8,"acqua":55.5,"muscolo":55.7,"mb":1730,"viscerale":7,"etaMet":41,"bmi":27.5,"punteggio":2,"ossea":3},{"date":"2023-07-15","peso":78.4,"grasso":23.2,"acqua":57.2,"muscolo":54.6,"mb":1779,"viscerale":8,"etaMet":42,"bmi":28.5,"punteggio":2,"ossea":3},{"date":"2023-11-11","peso":76.5,"grasso":22.8,"acqua":54.6,"muscolo":56.1,"mb":1745,"viscerale":7,"etaMet":41,"bmi":27.8,"punteggio":2,"ossea":3},{"date":"2023-12-16","peso":75,"grasso":22.3,"acqua":54.7,"muscolo":55.4,"mb":1720,"viscerale":7,"etaMet":39,"bmi":27.2,"punteggio":5,"ossea":3},{"date":"2024-02-24","peso":77,"grasso":22.8,"acqua":54.5,"muscolo":56.4,"mb":1754,"viscerale":7,"etaMet":41,"bmi":27.9,"punteggio":5,"ossea":3},{"date":"2024-03-23","peso":77.3,"grasso":21.9,"acqua":55,"muscolo":57.4,"mb":1779,"viscerale":7,"etaMet":38,"bmi":28.1,"punteggio":5,"ossea":3},{"date":"2024-05-11","peso":75.6,"grasso":22.6,"acqua":55.4,"muscolo":55.6,"mb":1727,"viscerale":7,"etaMet":40,"bmi":27.4,"punteggio":2,"ossea":3},{"date":"2024-06-29","peso":78.8,"grasso":22.7,"acqua":53.7,"muscolo":57.9,"mb":1792,"viscerale":8,"etaMet":42,"bmi":28.6,"punteggio":3,"ossea":3},{"date":"2024-09-14","peso":77.4,"grasso":22.3,"acqua":53.1,"muscolo":57.1,"mb":1767,"viscerale":7,"etaMet":41,"bmi":28.1,"punteggio":3,"ossea":3},{"date":"2024-12-14","peso":76.2,"grasso":21.7,"acqua":53.5,"muscolo":56.7,"mb":1753,"viscerale":7,"etaMet":38,"bmi":27.7,"punteggio":5,"ossea":3},{"date":"2025-03-06","peso":77.2,"grasso":22.3,"acqua":53.5,"muscolo":57,"mb":1764,"viscerale":7,"etaMet":40,"bmi":28,"punteggio":3,"ossea":3},{"date":"2025-05-28","peso":76.5,"grasso":21.6,"acqua":55,"muscolo":57,"mb":1761,"viscerale":7,"etaMet":38,"bmi":27.8,"punteggio":3,"ossea":3},{"date":"2025-10-03","peso":78.1,"grasso":20.9,"acqua":58,"muscolo":58.7,"mb":1811,"viscerale":7,"etaMet":36,"bmi":28.3,"punteggio":3,"ossea":3},{"date":"2025-10-25","peso":77.2,"grasso":18.5,"acqua":60.4,"muscolo":59.8,"mb":1834,"viscerale":6.5,"etaMet":30,"bmi":28,"punteggio":6,"ossea":3},{"date":"2025-11-21","peso":77.1,"grasso":18.6,"acqua":60.4,"muscolo":59.7,"mb":1831,"viscerale":6.5,"etaMet":30,"bmi":28,"punteggio":6,"ossea":3},{"date":"2026-01-24","peso":77.6,"grasso":19.3,"acqua":59.8,"muscolo":59.5,"mb":1829,"viscerale":6.5,"etaMet":32,"bmi":28.2,"punteggio":6,"ossea":3},{"date":"2026-02-15","peso":79.3,"grasso":18.6,"acqua":60.7,"muscolo":61.3,"mb":1882,"viscerale":6.5,"etaMet":30,"bmi":28.8,"punteggio":6,"ossea":3},{"date":"2026-02-21","peso":78.2,"grasso":18.4,"acqua":60.8,"muscolo":60.6,"mb":1860,"viscerale":6.5,"etaMet":29,"bmi":28.4,"punteggio":6,"ossea":3},{"date":"2026-02-28","peso":79.1,"grasso":18.9,"acqua":60.5,"muscolo":61,"mb":1873,"viscerale":6.5,"etaMet":31,"bmi":28.7,"punteggio":6,"ossea":3},{"date":"2026-03-07","peso":77.2,"grasso":18.9,"acqua":60.1,"muscolo":59.5,"mb":1826,"viscerale":6.5,"etaMet":31,"bmi":28,"punteggio":6,"ossea":3},{"date":"2026-03-14","peso":77.7,"grasso":19.1,"acqua":60,"muscolo":59.8,"mb":1836,"viscerale":6.5,"etaMet":31,"bmi":28.2,"punteggio":6,"ossea":3},{"date":"2026-04-11","peso":78.2,"grasso":19,"acqua":60.1,"muscolo":60.2,"mb":1848,"viscerale":6.5,"etaMet":31,"bmi":28.4,"punteggio":6,"ossea":3},{"date":"2026-04-18","peso":78.7,"grasso":19.5,"acqua":60,"muscolo":60.2,"mb":1850,"viscerale":6.5,"etaMet":31,"bmi":28.6,"punteggio":6,"ossea":3},{"date":"2026-05-09","peso":78.1,"grasso":18.8,"acqua":60.3,"muscolo":60.2,"mb":1850,"viscerale":6.5,"etaMet":30,"bmi":28.3,"punteggio":6,"ossea":3},{"date":"2026-05-23","peso":77.9,"grasso":19.2,"acqua":59.9,"muscolo":59.8,"mb":1850,"viscerale":6.5,"etaMet":31,"bmi":28.3,"punteggio":6,"ossea":3},{"date":"2026-07-03","peso":79,"grasso":20.5,"acqua":58.7,"muscolo":59.6,"mb":1836,"viscerale":7,"etaMet":35,"bmi":28.7,"punteggio":3,"ossea":3},{"date":"2026-07-18","peso":79.3,"grasso":19.9,"acqua":59.5,"muscolo":60.4,"mb":1858,"viscerale":7,"etaMet":33,"bmi":28.8,"punteggio":6,"ossea":3},{"date":"2026-07-25","peso":78.8,"grasso":18.4,"acqua":60.9,"muscolo":61.1,"mb":1875,"viscerale":6.5,"etaMet":29,"bmi":28.6,"punteggio":6,"ossea":3},{"date":"2026-08-01","peso":79.2,"grasso":17.3,"acqua":62.1,"muscolo":62.2,"mb":1905,"viscerale":6,"etaMet":26,"bmi":28.7,"punteggio":6,"ossea":3},{"date":"2026-08-08","peso":79.3,"grasso":18.7,"acqua":60.6,"muscolo":61.2,"mb":1880,"viscerale":6.5,"etaMet":30,"bmi":28.8,"punteggio":6,"ossea":3},{"date":"2026-08-15","peso":78.4,"grasso":18.5,"acqua":60.7,"muscolo":60.7,"mb":1862,"viscerale":6.5,"etaMet":30,"bmi":28.5,"punteggio":6,"ossea":3}];
   const SEED_TS = Date.parse("2025-12-20T12:00:00Z");
 
   // ---- stato ----
@@ -686,9 +693,10 @@
         return;
       } catch (e) {}
     }
-    // Primo avvio: precarica lo storico della nutrizionista con un timestamp "vecchio",
+    // Primo avvio: precarica gli storici con un timestamp "vecchio",
     // così eventuali dati reali già presenti in cloud hanno sempre la precedenza.
     state.nutri = JSON.parse(JSON.stringify(SEED_NUTRI));
+    state.scale = JSON.parse(JSON.stringify(SEED_SCALE));
     lastLocalChange = SEED_TS;
     try {
       localStorage.setItem(LS_KEY, JSON.stringify(state));
@@ -1065,8 +1073,13 @@
 
     // ultimo valore evidenziato
     const lp = pts[pts.length - 1];
-    ctx.fillStyle = cssVar("--ink"); ctx.font = "800 14px " + CHART_FONT; ctx.textAlign = "right";
-    ctx.fillText(fmt(lp.y, f.dec) + (f.u ? " " + f.u : ""), w - padR, Math.max(padT + 12, Y(lp.y) - 12));
+    ctx.font = "800 14px " + CHART_FONT; ctx.textAlign = "right";
+    const ly = Math.max(padT + 12, Y(lp.y) - 12);
+    const ltxt = fmt(lp.y, f.dec) + (f.u ? " " + f.u : "");
+    ctx.lineWidth = 3.5; ctx.lineJoin = "round"; ctx.strokeStyle = cssVar("--bg");
+    ctx.strokeText(ltxt, w - padR, ly);
+    ctx.fillStyle = cssVar("--ink");
+    ctx.fillText(ltxt, w - padR, ly);
 
     if (hint) {
       const first = pts[0], diff = Math.round((lp.y - first.y) * 100) / 100;
@@ -1203,18 +1216,27 @@
     });
   });
 
-  $("btnSeedNutri").addEventListener("click", () => {
-    if (!confirm("Ricaricare lo storico iniziale (" + SEED_NUTRI.length + " rilevazioni dal foglio Weight Tracker)?\nLe misurazioni con la stessa data verranno sostituite.")) return;
-    backupState();
-    const list = state.nutri;
-    SEED_NUTRI.forEach((m) => {
-      const rec = JSON.parse(JSON.stringify(m));
-      const i = list.findIndex((r) => r.date === rec.date);
-      if (i >= 0) list[i] = rec; else list.push(rec);
+  const SEEDS = {
+    nutri: { data: SEED_NUTRI, src: "foglio Weight Tracker" },
+    bilancia: { data: SEED_SCALE, src: "export della bilancia" }
+  };
+  Object.keys(SEEDS).forEach((tab) => {
+    const btn = $("btnSeed" + capital(tab));
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      const seed = SEEDS[tab].data;
+      if (!confirm("Ricaricare lo storico iniziale (" + seed.length + " rilevazioni dal " + SEEDS[tab].src + ")?\nLe misurazioni con la stessa data verranno sostituite.")) return;
+      backupState();
+      const list = state[TABS[tab].list];
+      seed.forEach((m) => {
+        const rec = JSON.parse(JSON.stringify(m));
+        const i = list.findIndex((r) => r.date === rec.date);
+        if (i >= 0) list[i] = Object.assign({}, list[i], rec); else list.push(rec);
+      });
+      list.sort((a, b) => dateVal(b.date) - dateVal(a.date));
+      save(); renderTab(tab);
+      alert("Storico iniziale ricaricato: " + seed.length + " misurazioni.");
     });
-    list.sort((a, b) => dateVal(b.date) - dateVal(a.date));
-    save(); renderTab("nutri");
-    alert("Storico iniziale ricaricato.");
   });
 
   ["cfgStart", "cfgGoal", "cfgHeight"].forEach((id) => {
