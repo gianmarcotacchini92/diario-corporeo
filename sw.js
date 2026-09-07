@@ -1,4 +1,4 @@
-const CACHE = "diario-corporeo-v2";
+const CACHE = "diario-corporeo-v3";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
@@ -18,7 +18,7 @@ self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
-  // Rete-first per la pagina, così gli aggiornamenti arrivano subito; fallback alla cache offline.
+  // Rete-first per la pagina, cosÃ¬ gli aggiornamenti arrivano subito; fallback alla cache offline.
   if (req.mode === "navigate" || url.pathname.endsWith("/index.html") || url.pathname.endsWith("/")) {
     e.respondWith(fetch(req).then((r) => {
       const copy = r.clone();

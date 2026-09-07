@@ -44,6 +44,10 @@
     --blob1: rgba(91,75,255,.22);
     --blob2: rgba(0,191,166,.20);
     --blob3: rgba(255,93,115,.18);
+    --tip-bg: #171528;
+    --tip-ink: #ffffff;
+    --tip-muted: rgba(255,255,255,.62);
+    --tip-shadow: 0 10px 30px -8px rgba(20,18,32,.55);
   }
   html[data-theme="dark"] {
     --bg: #0a0912;
@@ -70,6 +74,10 @@
     --blob1: rgba(91,75,255,.30);
     --blob2: rgba(0,191,166,.20);
     --blob3: rgba(255,93,115,.16);
+    --tip-bg: #f5f3ff;
+    --tip-ink: #14121e;
+    --tip-muted: rgba(20,18,32,.58);
+    --tip-shadow: 0 10px 30px -8px rgba(0,0,0,.7);
   }
 
   * { box-sizing: border-box; }
@@ -283,6 +291,28 @@
   }
   canvas { display: block; width: 100%; }
 
+  .chartbox { position: relative; }
+  .chartbox > canvas.base { touch-action: pan-y; cursor: crosshair; }
+  .chartbox > canvas.ov { position: absolute; left: 0; top: 0; pointer-events: none; }
+  .ctip {
+    position: absolute; z-index: 4; pointer-events: none;
+    left: 0; top: 0; transform: translate(-50%, -100%);
+    background: var(--tip-bg); color: var(--tip-ink);
+    border-radius: 14px; padding: 9px 12px;
+    box-shadow: var(--tip-shadow);
+    font-size: 12.5px; line-height: 1.35; white-space: nowrap;
+    opacity: 0; visibility: hidden;
+    transition: opacity .12s ease, transform .08s ease;
+  }
+  .ctip.on { opacity: 1; visibility: visible; }
+  .ctip .cd { font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--tip-muted); font-weight: 700; }
+  .ctip .cv { font-size: 17px; font-weight: 800; letter-spacing: -.02em; margin-top: 2px; }
+  .ctip .cv small { font-size: 11.5px; font-weight: 700; color: var(--tip-muted); margin-left: 2px; }
+  .ctip .cdiff { font-size: 11.5px; font-weight: 700; margin-top: 2px; }
+  .ctip .cdiff.pos { color: var(--good); }
+  .ctip .cdiff.neg { color: var(--bad); }
+  .ctip .cdiff.neu { color: var(--tip-muted); }
+
   /* ---- barra di navigazione flottante ---- */
   .tabbar {
     position: fixed; z-index: 60;
@@ -392,7 +422,11 @@
   <div class="card" style="margin-bottom:16px;" data-tab="bilancia">
     <h2><span class="ico">📈</span> Andamento</h2>
     <div class="metricbtns" id="metricsBilancia"></div>
-    <canvas id="chartBilancia" height="280"></canvas>
+    <div class="chartbox">
+      <canvas id="chartBilancia" class="base" height="280"></canvas>
+      <canvas id="ovBilancia" class="ov" height="280"></canvas>
+      <div class="ctip" id="tipBilancia"></div>
+    </div>
     <div class="hint" id="hintBilancia" style="margin:10px 0 0;"></div>
   </div>
 
@@ -432,7 +466,11 @@
   <div class="card" style="margin-bottom:16px;" data-tab="nutri">
     <h2><span class="ico">📈</span> Andamento</h2>
     <div class="metricbtns" id="metricsNutri"></div>
-    <canvas id="chartNutri" height="280"></canvas>
+    <div class="chartbox">
+      <canvas id="chartNutri" class="base" height="280"></canvas>
+      <canvas id="ovNutri" class="ov" height="280"></canvas>
+      <div class="ctip" id="tipNutri"></div>
+    </div>
     <div class="hint" id="hintNutri" style="margin:10px 0 0;"></div>
   </div>
 
@@ -842,6 +880,94 @@
   }
   const CHART_FONT = '"Plus Jakarta Sans", system-ui, sans-serif';
 
+  const CHART_GEOM = { bilancia: null, nutri: null };
+  const HOVER_IDX = { bilancia: -1, nutri: -1 };
+  let hoverTouchTimer = null;
+
+  function hideHover(tab) {
+    HOVER_IDX[tab] = -1;
+    const ov = $("ov" + capital(tab));
+    if (ov) { const c = ov.getContext("2d"); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, ov.width, ov.height); }
+    const tip = $("tip" + capital(tab));
+    if (tip) tip.classList.remove("on");
+  }
+
+  function drawHover(tab, idx) {
+    const g = CHART_GEOM[tab];
+    const ov = $("ov" + capital(tab));
+    const tip = $("tip" + capital(tab));
+    if (!g || !ov || !g.pts[idx]) return;
+    if (HOVER_IDX[tab] === idx && tip && tip.classList.contains("on")) return;
+    HOVER_IDX[tab] = idx;
+
+    const p = g.pts[idx];
+    const x = g.X(p.t), y = g.Y(p.y);
+    const c = ov.getContext("2d");
+    c.setTransform(g.dpr, 0, 0, g.dpr, 0, 0);
+    c.clearRect(0, 0, g.w, g.h);
+
+    // crosshair verticale
+    c.strokeStyle = cssVar("--chart-line");
+    c.globalAlpha = .45; c.lineWidth = 1.5; c.setLineDash([3, 4]);
+    c.beginPath(); c.moveTo(x, g.padT - 6); c.lineTo(x, g.padT + g.ch + 4); c.stroke();
+    c.setLineDash([]); c.globalAlpha = 1;
+
+    // alone + punto evidenziato
+    c.beginPath(); c.arc(x, y, 11, 0, Math.PI * 2);
+    c.fillStyle = cssVar("--chart-f1"); c.fill();
+    c.beginPath(); c.arc(x, y, 5.6, 0, Math.PI * 2);
+    c.fillStyle = cssVar("--chart-dot-in"); c.fill();
+    c.strokeStyle = cssVar("--chart-line"); c.lineWidth = 3; c.stroke();
+
+    if (!tip) return;
+    const prev = idx > 0 ? g.pts[idx - 1] : null;
+    let diffHtml = "";
+    if (prev) {
+      const d = Math.round((p.y - prev.y) * 100) / 100;
+      const good = LOWER_BETTER[g.key] ? d < 0 : d > 0;
+      diffHtml = '<div class="cdiff ' + (d === 0 ? "neu" : (good ? "pos" : "neg")) + '">' +
+        (d > 0 ? "+" : "") + fmt(d, g.f.dec) + (g.f.u ? " " + escapeHtml(g.f.u) : "") + " vs precedente</div>";
+    }
+    tip.innerHTML = '<div class="cd">' + escapeHtml(fmtDate(p.d)) + "</div>" +
+      '<div class="cv">' + fmt(p.y, g.f.dec) + (g.f.u ? "<small>" + escapeHtml(g.f.u) + "</small>" : "") + "</div>" +
+      diffHtml;
+    tip.classList.add("on");
+    const tw = tip.offsetWidth || 120;
+    const cx = Math.min(Math.max(x, tw / 2 + 4), g.w - tw / 2 - 4);
+    tip.style.left = cx + "px";
+    tip.style.top = Math.max(tip.offsetHeight + 6, y - 14) + "px";
+  }
+
+  function hoverAt(tab, clientX) {
+    const g = CHART_GEOM[tab];
+    const cv = $("chart" + capital(tab));
+    if (!g || !cv || !g.pts.length) return;
+    const x = clientX - cv.getBoundingClientRect().left;
+    let best = 0, bd = Infinity;
+    for (let i = 0; i < g.pts.length; i++) {
+      const d = Math.abs(g.X(g.pts[i].t) - x);
+      if (d < bd) { bd = d; best = i; }
+    }
+    drawHover(tab, best);
+  }
+
+  function initChartHover(tab) {
+    const cv = $("chart" + capital(tab));
+    if (!cv) return;
+    cv.addEventListener("pointermove", (e) => {
+      if (hoverTouchTimer) { clearTimeout(hoverTouchTimer); hoverTouchTimer = null; }
+      hoverAt(tab, e.clientX);
+    });
+    cv.addEventListener("pointerdown", (e) => { hoverAt(tab, e.clientX); });
+    cv.addEventListener("pointerleave", () => hideHover(tab));
+    cv.addEventListener("pointercancel", () => hideHover(tab));
+    cv.addEventListener("pointerup", (e) => {
+      if (e.pointerType === "mouse") return;
+      if (hoverTouchTimer) clearTimeout(hoverTouchTimer);
+      hoverTouchTimer = setTimeout(() => hideHover(tab), 2600);
+    });
+  }
+
   function renderChart(tab) {
     const cv = $("chart" + capital(tab));
     const hint = $("hint" + capital(tab));
@@ -864,7 +990,15 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
 
+    const ov = $("ov" + capital(tab));
+    if (ov) {
+      ov.width = cv.width; ov.height = cv.height;
+      ov.style.width = w + "px"; ov.style.height = h + "px";
+    }
+    hideHover(tab);
+
     if (pts.length < 1) {
+      CHART_GEOM[tab] = null;
       ctx.fillStyle = cssVar("--muted");
       ctx.font = "600 14px " + CHART_FONT;
       ctx.textAlign = "center";
@@ -883,6 +1017,7 @@
     const minT = pts[0].t, maxT = pts[pts.length - 1].t;
     const X = (t) => padL + (maxT === minT ? cw / 2 : ((t - minT) / (maxT - minT)) * cw);
     const Y = (v) => padT + ch - ((v - minY) / (maxY - minY)) * ch;
+    CHART_GEOM[tab] = { pts: pts, f: f, key: key, X: X, Y: Y, w: w, h: h, dpr: dpr, padT: padT, padB: padB, ch: ch };
 
     // griglia + etichette asse Y
     ctx.strokeStyle = cssVar("--line"); ctx.lineWidth = 1; ctx.setLineDash([4, 5]);
@@ -1350,6 +1485,8 @@
   clearForm("nutri");
   renderAll();
   initTabs();
+  initChartHover("bilancia");
+  initChartHover("nutri");
 
   const savedCfg = localStorage.getItem(CLOUD_CFG_KEY) || EMBEDDED_FB_CONFIG;
   if (savedCfg) {
