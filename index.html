@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Diario Corporeo</title>
+<link rel="manifest" href="./manifest.webmanifest" />
+<meta name="theme-color" content="#0f172a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="apple-touch-icon" href="./icon-192.png" />
+<style>
+
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card2: #273549;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --good: #34d399;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(160deg, #0f172a, #111827);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+  h1 {
+    text-align: center;
+    font-weight: 700;
+    margin: 0 0 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+  .wrap { max-width: 1400px; margin: 0 auto; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+  .card h2 {
+    margin: 0 0 14px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card h2 .ico { font-size: 18px; }
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 15px;
+    margin-bottom: 12px;
+  }
+  input:focus { outline: none; border-color: var(--accent); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  button {
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    color: #0b1220;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 16px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform .05s ease, opacity .15s ease;
+  }
+  button:hover { opacity: .92; }
+  button:active { transform: translateY(1px); }
+  button.ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  button.ghost:hover { color: var(--text); }
+  .stat {
+    background: var(--card2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    text-align: center;
+  }
+  .stat .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .stat .v { font-size: 22px; font-weight: 700; margin-top: 4px; }
+  .pos { color: var(--good); }
+  .neg { color: var(--bad); }
+  .neu { color: var(--text); }
+  .warn { color: var(--warn); }
+
+  /* suggestion box */
+  #suggestion {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    background: linear-gradient(160deg, #16233b, #182338);
+  }
+  .sug-head { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .sug-main {
+    font-size: 30px;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+  .sug-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .chip {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .chip .k { font-size: 11px; color: var(--muted); text-transform: uppercase; }
+  .chip .v { font-size: 18px; font-weight: 700; margin-top: 2px; }
+  .note {
+    margin-top: 12px;
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(56,189,248,.08);
+    border: 1px solid rgba(56,189,248,.25);
+  }
+  .note.bad { background: rgba(248,113,113,.10); border-color: rgba(248,113,113,.35); color: #fecaca; }
+  .note.warn { background: rgba(251,191,36,.10); border-color: rgba(251,191,36,.35); color: #fde68a; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 9px 8px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: .04em; }
+  tbody tr:hover { background: rgba(255,255,255,.03); }
+  tr.totrow { background: rgba(255,255,255,.04); }
+  tr.totrow:hover { background: rgba(255,255,255,.04); }
+  tr.totrow td { border-top: 2px solid var(--border); border-bottom: none; }
+  tr.totrow2 td { border-top: 1px dashed var(--border); }
+  .del {
+    background: transparent; color: var(--bad); border: none; cursor: pointer;
+    font-size: 16px; padding: 2px 6px;
+  }
+  .edit {
+    background: transparent; color: var(--muted); border: none; cursor: pointer;
+    font-size: 15px; padding: 2px 6px;
+  }
+  .edit:hover { color: var(--accent); }
+  .mv {
+    background: transparent; color: var(--muted); border: none; cursor: pointer;
+    font-size: 11px; padding: 2px 4px; line-height: 1;
+  }
+  .mv:hover:not(:disabled) { color: var(--accent); }
+  .mv:disabled { opacity: .25; cursor: default; }
+  .grip {
+    display: inline-block; margin-right: 6px; color: var(--muted);
+    cursor: grab; font-size: 13px; letter-spacing: -1px; user-select: none;
+  }
+  tr[draggable="true"]:active .grip { cursor: grabbing; }
+  tr.dragging { opacity: .4; }
+  tr.drop-above td { box-shadow: inset 0 2px 0 0 var(--accent); }
+  tr.drop-below td { box-shadow: inset 0 -2px 0 0 var(--accent); }
+  .rowbtns { display: inline-flex; gap: 2px; }
+  .table-wrap { overflow-x: auto; }
+  img, svg, canvas { max-width: 100%; }
+
+  /* Scrollbar personalizzata */
+  * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(var(--card2), var(--border));
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(var(--accent2), var(--accent));
+    background-clip: padding-box;
+    border: 2px solid transparent;
+  }
+  ::-webkit-scrollbar-corner { background: transparent; }
+  .table-wrap:hover { scrollbar-color: var(--accent) transparent; }
+  .empty { color: var(--muted); text-align: center; padding: 24px; font-size: 14px; }
+  .muted { color: var(--muted); }
+  td input { width: 100%; margin: 0; padding: 6px 8px; font-size: 13px; min-width: 84px; }
+  code { background: var(--card2); padding: 1px 6px; border-radius: 5px; font-size: 12px; }
+
+  /* crash levels */
+  .lvl {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--card2);
+    margin-bottom: 10px;
+  }
+  .lvl.active { border-color: var(--bad); box-shadow: 0 0 0 1px var(--bad) inset; }
+  .lvl .tag { font-weight: 800; font-size: 18px; }
+  .lvl .lvl-mid { font-size: 13px; color: var(--muted); }
+  .lvl .lvl-mid b { color: var(--text); }
+  .lvl .lvl-act { text-align: right; font-size: 13px; }
+  .lvl .lvl-act b { font-size: 16px; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:700; }
+  .badge.hit { background: var(--bad); color:#2a0d0d; }
+  .badge.safe { background: rgba(52,211,153,.15); color: var(--good); }
+
+  .toolbar { display:flex; gap:10px; flex-wrap: wrap; justify-content:flex-end; margin-top: 8px; }
+  .hint { font-size: 12px; color: var(--muted); margin: -6px 0 12px; }
+  details summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+
+  /* ---- Ottimizzazioni per telefono ---- */
+  @media (max-width: 640px) {
+    body { padding: 14px 10px; overflow-x: hidden; }
+    .wrap, .card { max-width: 100%; }
+    .subtitle { margin-bottom: 16px; font-size: 13px; }
+    h1 { font-size: 24px; }
+    .grid { gap: 12px; margin-bottom: 12px; }
+    .card { padding: 14px; border-radius: 12px; }
+    .card h2 { font-size: 15px; margin-bottom: 12px; }
+    /* Le griglie di input diventano a colonna singola per non stringere i campi */
+    .row2, .row3 { grid-template-columns: 1fr; gap: 10px; }
+    /* 16px evita lo zoom automatico di iOS al focus sui campi */
+    input[type="text"], input[type="number"], td input, textarea { font-size: 16px; }
+    .sug-main { font-size: 24px; }
+    .sug-grid { grid-template-columns: 1fr 1fr; }
+    .stat .v { font-size: 19px; }
+    /* Pulsanti più comodi da toccare e a piena larghezza nelle barre azioni */
+    button { padding: 12px 16px; }
+    .toolbar { justify-content: stretch; }
+    .toolbar button { flex: 1 1 45%; }
+    /* I livelli di crash si impilano in verticale */
+    .lvl { grid-template-columns: 1fr; text-align: left; gap: 6px; }
+    .lvl .lvl-act { text-align: left; }
+    table { font-size: 12px; }
+    th, td { padding: 8px 6px; }
+  }
+
+  /* ---- Barra di navigazione a schede ---- */
+  body { padding-bottom: 88px; }
+  .tabbar {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 600px; z-index: 60;
+    display: flex; gap: 4px;
+    background: rgba(15,23,42,.97); backdrop-filter: blur(10px);
+    border: 1px solid var(--border); border-bottom: none;
+    border-radius: 16px 16px 0 0;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -8px 24px rgba(0,0,0,.35);
+  }
+  .tabbtn {
+    flex: 1; background: transparent; color: var(--muted); border: none;
+    border-radius: 10px; padding: 6px 2px; cursor: pointer;
+    font-size: 11px; font-weight: 600;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    transition: background .12s ease, color .12s ease;
+  }
+  .tabbtn .tico { font-size: 20px; line-height: 1; }
+  .tabbtn.active { color: var(--accent); background: rgba(56,189,248,.12); }
+  .tabbtn:active { transform: translateY(1px); }
+
+  /* ---- specifiche Diario Corporeo ---- */
+  input[type="date"] {
+    width: 100%; background: var(--card2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--text); padding: 10px 12px; font-size: 15px;
+    margin-bottom: 12px; font-family: inherit;
+  }
+  input[type="date"]:focus { outline: none; border-color: var(--accent); }
+  .fgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0 12px; }
+  .fgrid .fld label { display: flex; justify-content: space-between; gap: 6px; }
+  .fgrid .fld label .un { color: var(--border); text-transform: none; letter-spacing: 0; }
+  .sec-title {
+    grid-column: 1 / -1; font-size: 11px; color: var(--accent); text-transform: uppercase;
+    letter-spacing: .08em; font-weight: 700; margin: 6px 0 8px; padding-top: 6px;
+    border-top: 1px solid var(--border);
+  }
+  .metricbtns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .metricbtns button { padding: 7px 12px; font-size: 12px; }
+  .stat .d { font-size: 12px; margin-top: 2px; font-weight: 600; }
+  .stat.small .v { font-size: 18px; }
+  #sumBilancia, #sumNutri { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+  canvas { display: block; width: 100%; }
+  @media (max-width: 640px) {
+    .fgrid { grid-template-columns: 1fr 1fr; gap: 0 10px; }
+    input[type="date"] { font-size: 16px; }
+    #sumBilancia, #sumNutri { grid-template-columns: 1fr 1fr; }
+    .stat .v { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Diario Corporeo</h1>
+  <div class="subtitle">Misurazioni della bilancia impedenziometrica e della nutrizionista · sincronizzate in cloud</div>
+
+  <nav class="tabbar" id="tabbar">
+    <button type="button" class="tabbtn active" data-go="bilancia"><span class="tico">⚖️</span>Bilancia</button>
+    <button type="button" class="tabbtn" data-go="nutri"><span class="tico">🩺</span>Nutrizionista</button>
+    <button type="button" class="tabbtn" data-go="account"><span class="tico">👤</span>Account</button>
+  </nav>
+
+  <!-- ================= BILANCIA ================= -->
+  <div class="card" style="margin-bottom:16px;" data-tab="bilancia">
+    <h2><span class="ico">📊</span> Riepilogo · ultima pesata</h2>
+    <div class="grid" id="sumBilancia" style="margin-bottom:0;"></div>
+    <div class="note" id="goalBilancia" style="margin-top:12px;">Nessuna misurazione registrata.</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;" data-tab="bilancia">
+    <h2><span class="ico">➕</span> <span id="titleBilancia">Nuova misurazione</span></h2>
+    <label>Data</label>
+    <input type="date" id="dateBilancia" />
+    <div class="fgrid" id="fieldsBilancia"></div>
+    <label style="margin-top:8px;">Note</label>
+    <input type="text" id="noteBilancia" placeholder="facoltativo" />
+    <div class="toolbar" style="justify-content:stretch;">
+      <button id="btnSaveBilancia" style="flex:1 1 60%;">Salva misurazione</button>
+      <button class="ghost" id="btnCancelBilancia" style="display:none;">Annulla</button>
+    </div>
+    <div class="hint" id="msgBilancia" style="min-height:16px;margin:8px 0 0;"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;" data-tab="bilancia">
+    <h2><span class="ico">📈</span> Andamento</h2>
+    <div class="metricbtns" id="metricsBilancia"></div>
+    <canvas id="chartBilancia" height="280"></canvas>
+    <div class="hint" id="hintBilancia" style="margin:10px 0 0;"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;" data-tab="bilancia">
+    <h2><span class="ico">🗂️</span> Storico bilancia</h2>
+    <div class="table-wrap">
+      <table><thead id="theadBilancia"></thead><tbody id="tbodyBilancia"></tbody></table>
+    </div>
+    <div class="toolbar">
+      <button class="ghost" id="btnExpBilancia">Esporta JSON</button>
+      <button class="ghost" id="btnImpBilancia">Importa JSON</button>
+      <button class="ghost" id="btnClrBilancia">Azzera scheda</button>
+    </div>
+  </div>
+
+  <!-- ================= NUTRIZIONISTA ================= -->
+  <div class="card" style="margin-bottom:16px;" data-tab="nutri">
+    <h2><span class="ico">📊</span> Riepilogo · ultima visita</h2>
+    <div class="grid" id="sumNutri" style="margin-bottom:0;"></div>
+    <div class="note" id="goalNutri" style="margin-top:12px;">Nessuna misurazione registrata.</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;" data-tab="nutri">
+    <h2><span class="ico">➕</span> <span id="titleNutri">Nuova misurazione</span></h2>
+    <label>Data</label>
+    <input type="date" id="dateNutri" />
+    <div class="fgrid" id="fieldsNutri"></div>
+    <label style="margin-top:8px;">Note</label>
+    <input type="text" id="noteNutri" placeholder="facoltativo" />
+    <div class="toolbar" style="justify-content:stretch;">
+      <button id="btnSaveNutri" style="flex:1 1 60%;">Salva misurazione</button>
+      <button class="ghost" id="btnCancelNutri" style="display:none;">Annulla</button>
+    </div>
+    <div class="hint" id="msgNutri" style="min-height:16px;margin:8px 0 0;"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;" data-tab="nutri">
+    <h2><span class="ico">📈</span> Andamento</h2>
+    <div class="metricbtns" id="metricsNutri"></div>
+    <canvas id="chartNutri" height="280"></canvas>
+    <div class="hint" id="hintNutri" style="margin:10px 0 0;"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;" data-tab="nutri">
+    <h2><span class="ico">🗂️</span> Storico nutrizionista</h2>
+    <div class="table-wrap">
+      <table><thead id="theadNutri"></thead><tbody id="tbodyNutri"></tbody></table>
+    </div>
+    <div class="toolbar">
+      <button class="ghost" id="btnExpNutri">Esporta JSON</button>
+      <button class="ghost" id="btnImpNutri">Importa JSON</button>
+      <button class="ghost" id="btnSeedNutri">↻ Ricarica storico iniziale</button>
+      <button class="ghost" id="btnClrNutri">Azzera scheda</button>
+    </div>
+  </div>
+
+  <!-- ================= ACCOUNT ================= -->
+  <div class="card" style="margin-bottom:16px;" data-tab="account">
+    <h2><span class="ico">🎯</span> Obiettivo e dati personali</h2>
+    <div class="row3">
+      <div>
+        <label>Peso di partenza (kg)</label>
+        <input type="number" id="cfgStart" step="0.1" placeholder="es. 82.6" />
+      </div>
+      <div>
+        <label>Obiettivo (kg)</label>
+        <input type="number" id="cfgGoal" step="0.1" placeholder="es. 72" />
+      </div>
+      <div>
+        <label>Altezza (cm)</label>
+        <input type="number" id="cfgHeight" step="1" placeholder="es. 166" />
+      </div>
+    </div>
+    <div class="hint" style="margin-bottom:0;">L'altezza serve a calcolare automaticamente il <b>BMI</b> quando lasci vuoto il campo nella misurazione.</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;" data-tab="account">
+    <h2><span class="ico">☁️</span> Sincronizzazione cloud (Firebase + Google)</h2>
+    <div class="hint" style="margin-top:0;line-height:1.6;">
+      Accedi con il tuo account <b>Google</b> su PC e telefono: i dati vengono salvati in cloud
+      e sincronizzati in tempo reale tra tutti i dispositivi collegati allo stesso account.
+    </div>
+    <div class="grid" style="margin-top:14px;">
+      <div>
+        <label>Configurazione Firebase (oggetto <code>firebaseConfig</code>)</label>
+        <textarea id="fbConfig" spellcheck="false" style="width:100%;min-height:120px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;resize:vertical;"></textarea>
+      </div>
+      <div>
+        <label>Account</label>
+        <div id="fbUser" class="hint" style="margin-top:0;font-size:14px;color:var(--text);">Non hai effettuato l'accesso.</div>
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          <button id="btnGoogleLogin">🔑 Accedi con Google</button>
+          <button class="ghost" id="btnGoogleLogout">Esci</button>
+        </div>
+        <div class="hint" style="margin-top:10px;">
+          Usa lo <b>stesso account Google</b> su ogni dispositivo per vedere gli stessi dati.
+        </div>
+      </div>
+    </div>
+    <div id="fbStatus" class="note" style="margin-top:12px;">Non connesso.</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;" data-tab="account">
+    <h2><span class="ico">💾</span> Backup completo</h2>
+    <div class="hint" style="margin-top:0;">Esporta o ripristina <b>tutti</b> i dati (bilancia + nutrizionista + impostazioni) in un unico file.</div>
+    <div class="toolbar" style="justify-content:stretch;">
+      <button class="ghost" id="btnExportAll">Esporta tutto</button>
+      <button class="ghost" id="btnImportAll">Importa tutto</button>
+      <button class="ghost" id="btnRestoreBackup">↩ Ripristina backup</button>
+    </div>
+  </div>
+
+  <input type="file" id="fileImport" accept="application/json,.json" style="display:none;" />
+</div>
+<script>
+(function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const LS_KEY = "diarioCorporeoState";
+  const BK_KEY = LS_KEY + "_backup";
+  const TAB_KEY = "diarioCorporeoTab";
+  const CLOUD_CFG_KEY = "diarioCorporeoFirebaseConfig";
+
+  // ---- definizione dei campi ----
+  const F_BASE = [
+    { k: "peso", l: "Peso", u: "kg", step: "0.1", dec: 1 },
+    { k: "grasso", l: "Grasso", u: "%", step: "0.1", dec: 1 },
+    { k: "acqua", l: "Acqua", u: "%", step: "0.1", dec: 1 },
+    { k: "muscolo", l: "Massa muscolare", u: "kg", step: "0.1", dec: 1 },
+    { k: "mb", l: "Metabolismo basale", u: "kcal", step: "1", dec: 0 },
+    { k: "viscerale", l: "Grasso viscerale", u: "", step: "1", dec: 0 },
+    { k: "etaMet", l: "Età metabolica", u: "anni", step: "1", dec: 0 },
+    { k: "bmi", l: "BMI", u: "", step: "0.1", dec: 1 }
+  ];
+  const F_SCALE = F_BASE.concat([{ k: "punteggio", l: "Punteggio fisico", u: "", step: "1", dec: 0 }]);
+  const F_CIRC = [
+    { k: "vita", l: "Vita", u: "cm", step: "0.5", dec: 1 },
+    { k: "addomeCirc", l: "Addome", u: "cm", step: "0.5", dec: 1 },
+    { k: "fianchi", l: "Fianchi", u: "cm", step: "0.5", dec: 1 },
+    { k: "cosce", l: "Cosce", u: "cm", step: "0.5", dec: 1 }
+  ];
+  const F_PLIC = [
+    { k: "petto", l: "Petto", u: "mm", step: "0.5", dec: 1 },
+    { k: "addomePlica", l: "Addome", u: "mm", step: "0.5", dec: 1 },
+    { k: "cosciaPlica", l: "Coscia", u: "mm", step: "0.5", dec: 1 },
+    { k: "sovrailiaca", l: "Sovrailiaca", u: "mm", step: "0.5", dec: 1 },
+    { k: "sottoscapola", l: "Sottoscapola", u: "mm", step: "0.5", dec: 1 },
+    { k: "tricipiti", l: "Tricipiti", u: "mm", step: "0.5", dec: 1 }
+  ];
+  const F_NUTRI = F_BASE.concat(F_CIRC, F_PLIC);
+  const TOT_KEYS = F_CIRC.concat(F_PLIC).map((f) => f.k);
+
+  // Metriche in cui un valore più basso è un miglioramento.
+  const LOWER_BETTER = { peso: 1, grasso: 1, viscerale: 1, etaMet: 1, bmi: 1, totale: 1 };
+  F_CIRC.concat(F_PLIC).forEach((f) => { LOWER_BETTER[f.k] = 1; });
+
+  const TABS = {
+    bilancia: { list: "scale", fields: F_SCALE, sections: null },
+    nutri: {
+      list: "nutri", fields: F_NUTRI,
+      sections: [
+        { title: "Composizione corporea", fields: F_BASE },
+        { title: "Circonferenze (cm)", fields: F_CIRC },
+        { title: "Pliche (mm)", fields: F_PLIC }
+      ]
+    }
+  };
+
+  // Storico iniziale ricavato dal foglio "Weight Tracker".
+  const SEED_NUTRI = [{"date":"2023-01-14","peso":82.6,"grasso":24.7,"acqua":52.3,"muscolo":59.1,"mb":1844,"viscerale":9,"etaMet":45,"bmi":30,"vita":95,"addomeCirc":96,"fianchi":97,"cosce":63,"petto":17,"addomePlica":21,"cosciaPlica":22,"sovrailiaca":21,"sottoscapola":24,"tricipiti":25},{"date":"2023-02-18","peso":79.6,"grasso":23.6,"acqua":52.9,"muscolo":57.8,"mb":1798,"viscerale":8,"etaMet":44,"bmi":28.9,"vita":93,"addomeCirc":94,"fianchi":95,"cosce":61,"petto":16,"addomePlica":18,"cosciaPlica":21,"sovrailiaca":18,"sottoscapola":21,"tricipiti":21},{"date":"2023-03-18","peso":78.9,"grasso":23.3,"acqua":53.6,"muscolo":57.5,"mb":1788,"viscerale":8,"etaMet":43,"bmi":28.6,"vita":91,"addomeCirc":93,"fianchi":94,"cosce":60,"petto":15,"addomePlica":16,"cosciaPlica":20,"sovrailiaca":16,"sottoscapola":21,"tricipiti":21},{"date":"2023-04-06","peso":76.9,"grasso":22.9,"acqua":54.7,"muscolo":56.3,"mb":1751,"viscerale":7,"etaMet":41,"bmi":27.9,"vita":89,"addomeCirc":91,"fianchi":92,"cosce":59,"petto":15,"addomePlica":15,"cosciaPlica":18,"sovrailiaca":15,"sottoscapola":18,"tricipiti":19},{"date":"2023-06-10","peso":75.9,"grasso":22.8,"acqua":55.5,"muscolo":55.7,"mb":1730,"viscerale":7,"etaMet":41,"bmi":27.5,"vita":87,"addomeCirc":90,"fianchi":91,"cosce":59,"petto":15,"addomePlica":15,"cosciaPlica":18,"sovrailiaca":14,"sottoscapola":17,"tricipiti":18},{"date":"2023-07-15","peso":78.4,"grasso":23.2,"acqua":54.6,"muscolo":57.2,"mb":1779,"viscerale":8,"etaMet":42,"bmi":28.5,"vita":89,"addomeCirc":92,"fianchi":92,"cosce":59,"petto":16,"addomePlica":16,"cosciaPlica":18,"sovrailiaca":15,"sottoscapola":16,"tricipiti":16},{"date":"2023-11-11","peso":76.5,"grasso":22.8,"acqua":54.6,"muscolo":56.1,"mb":1745,"viscerale":7,"etaMet":41,"bmi":27.8,"vita":88,"addomeCirc":90,"fianchi":91,"cosce":56,"petto":16,"addomePlica":15,"cosciaPlica":16,"sovrailiaca":14,"sottoscapola":16,"tricipiti":16},{"date":"2023-12-16","peso":75,"grasso":22.3,"acqua":54.7,"muscolo":55.4,"mb":1720,"viscerale":7,"etaMet":39,"bmi":27.2,"vita":86,"addomeCirc":89,"fianchi":90,"cosce":56,"petto":15,"addomePlica":14,"cosciaPlica":15,"sovrailiaca":12,"sottoscapola":14,"tricipiti":14},{"date":"2024-02-24","peso":77,"grasso":22.8,"acqua":54.5,"muscolo":56.4,"mb":1754,"viscerale":7,"etaMet":41,"bmi":27.9,"vita":88,"addomeCirc":91,"fianchi":91,"cosce":58,"petto":17,"addomePlica":16,"cosciaPlica":17,"sovrailiaca":13,"sottoscapola":18,"tricipiti":14},{"date":"2024-03-23","peso":77.3,"grasso":21.9,"acqua":55,"muscolo":57.4,"mb":1779,"viscerale":7,"etaMet":38,"bmi":28.1,"vita":87,"addomeCirc":90,"fianchi":90,"cosce":58,"petto":17,"addomePlica":14,"cosciaPlica":16,"sovrailiaca":14,"sottoscapola":16,"tricipiti":13},{"date":"2024-05-11","peso":75.6,"grasso":22.6,"acqua":55.4,"muscolo":55.6,"mb":1727,"viscerale":7,"etaMet":40,"bmi":27.4,"vita":85,"addomeCirc":88,"fianchi":90,"cosce":57,"petto":17,"addomePlica":14,"cosciaPlica":15,"sovrailiaca":13,"sottoscapola":14,"tricipiti":12},{"date":"2024-06-29","peso":78.8,"grasso":22.7,"acqua":53.7,"muscolo":57.9,"mb":1792,"viscerale":8,"etaMet":42,"bmi":28.6,"vita":89,"addomeCirc":92,"fianchi":92,"cosce":60,"petto":18,"addomePlica":15,"cosciaPlica":16,"sovrailiaca":14,"sottoscapola":15,"tricipiti":13},{"date":"2024-09-16","peso":77.4,"grasso":22.3,"acqua":53.1,"muscolo":57.1,"mb":1767,"viscerale":7,"etaMet":41,"bmi":28.1,"vita":87,"addomeCirc":91,"fianchi":90,"cosce":59,"petto":17,"addomePlica":14,"cosciaPlica":15,"sovrailiaca":14,"sottoscapola":13,"tricipiti":12},{"date":"2024-12-14","peso":76.2,"grasso":21.7,"acqua":53.5,"muscolo":56.7,"mb":1753,"viscerale":7,"etaMet":38,"bmi":27.7,"vita":86,"addomeCirc":91,"fianchi":90,"cosce":59,"petto":16,"addomePlica":14,"cosciaPlica":14,"sovrailiaca":13,"sottoscapola":13,"tricipiti":11},{"date":"2025-03-06","peso":77.2,"grasso":22.3,"acqua":53.5,"muscolo":57,"mb":1764,"viscerale":7,"etaMet":40,"bmi":28,"vita":87,"addomeCirc":92,"fianchi":90,"cosce":59,"petto":16,"addomePlica":14,"cosciaPlica":15,"sovrailiaca":15,"sottoscapola":15,"tricipiti":11},{"date":"2025-06-25","peso":76.5,"grasso":21.6,"acqua":55,"muscolo":57,"mb":1761,"viscerale":7,"etaMet":38,"bmi":27.8,"vita":86,"addomeCirc":91,"fianchi":90,"cosce":57,"petto":15,"addomePlica":14,"cosciaPlica":14,"sovrailiaca":14,"sottoscapola":14,"tricipiti":10},{"date":"2025-12-20","peso":75.2,"grasso":20,"acqua":54,"muscolo":57.2,"mb":1761,"viscerale":6,"etaMet":33,"bmi":27.3,"vita":84,"addomeCirc":90,"fianchi":88,"cosce":59,"petto":13,"addomePlica":12,"cosciaPlica":12,"sovrailiaca":12,"sottoscapola":12,"tricipiti":9}];
+  const SEED_TS = Date.parse("2025-12-20T12:00:00Z");
+
+  // ---- stato ----
+  const DEFAULT_STATE = { cfg: { start: 82.6, goal: 72, height: 166 }, scale: [], nutri: [], chart: { bilancia: "peso", nutri: "peso" } };
+  let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  let editIdx = { bilancia: null, nutri: null };
+  let lastLocalChange = parseInt(localStorage.getItem(LS_KEY + "_updatedAt") || "0", 10) || 0;
+
+  // ---- helpers ----
+  function numOrNull(v) {
+    if (v === null || v === undefined) return null;
+    if (typeof v === "number") return isFinite(v) ? v : null;
+    const s = String(v).trim().replace(",", ".");
+    if (!s) return null;
+    const n = parseFloat(s);
+    return isFinite(n) ? n : null;
+  }
+  function fmt(v, dec) {
+    const n = numOrNull(v);
+    if (n === null) return "—";
+    return n.toLocaleString("it-IT", { minimumFractionDigits: dec || 0, maximumFractionDigits: dec || 0 });
+  }
+  function escapeHtml(s) {
+    return String(s === null || s === undefined ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  function dateVal(d) { const t = Date.parse(d); return isNaN(t) ? 0 : t; }
+  function fmtDate(d) {
+    const t = Date.parse(d);
+    if (isNaN(t)) return escapeHtml(d || "");
+    const dt = new Date(t);
+    return String(dt.getDate()).padStart(2, "0") + "/" + String(dt.getMonth() + 1).padStart(2, "0") + "/" + dt.getFullYear();
+  }
+  function todayISO() {
+    const d = new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function sortedRows(tab) {
+    return (state[TABS[tab].list] || []).slice().sort((a, b) => dateVal(a.date) - dateVal(b.date));
+  }
+  function totale(r) {
+    let sum = 0, any = false;
+    TOT_KEYS.forEach((k) => { const v = numOrNull(r[k]); if (v !== null) { sum += v; any = true; } });
+    return any ? Math.round(sum * 10) / 10 : null;
+  }
+  function calcBmi(peso) {
+    const h = numOrNull(state.cfg.height);
+    const p = numOrNull(peso);
+    if (!h || !p) return null;
+    return Math.round((p / Math.pow(h / 100, 2)) * 10) / 10;
+  }
+
+  function isEmptyState(s) {
+    if (!s) return true;
+    const a = Array.isArray(s.scale) ? s.scale.length : 0;
+    const b = Array.isArray(s.nutri) ? s.nutri.length : 0;
+    return (a + b) === 0;
+  }
+
+  function save() {
+    lastLocalChange = Date.now();
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(state));
+      localStorage.setItem(LS_KEY + "_updatedAt", String(lastLocalChange));
+    } catch (e) {}
+    scheduleCloudUpload();
+  }
+  function backupState() {
+    try { localStorage.setItem(BK_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  function load() {
+    let raw = null;
+    try { raw = localStorage.getItem(LS_KEY); } catch (e) {}
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        state = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), parsed);
+        state.cfg = Object.assign({}, DEFAULT_STATE.cfg, parsed.cfg || {});
+        state.chart = Object.assign({}, DEFAULT_STATE.chart, parsed.chart || {});
+        if (!Array.isArray(state.scale)) state.scale = [];
+        if (!Array.isArray(state.nutri)) state.nutri = [];
+        return;
+      } catch (e) {}
+    }
+    // Primo avvio: precarica lo storico della nutrizionista con un timestamp "vecchio",
+    // così eventuali dati reali già presenti in cloud hanno sempre la precedenza.
+    state.nutri = JSON.parse(JSON.stringify(SEED_NUTRI));
+    lastLocalChange = SEED_TS;
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(state));
+      localStorage.setItem(LS_KEY + "_updatedAt", String(lastLocalChange));
+    } catch (e) {}
+  }
+
+  // ---- form ----
+  function fieldHtml(tab, f) {
+    const un = f.u ? '<span class="un">' + escapeHtml(f.u) + "</span>" : "";
+    return '<div class="fld"><label for="f_' + tab + "_" + f.k + '">' + escapeHtml(f.l) + un + "</label>" +
+      '<input type="number" inputmode="decimal" step="' + f.step + '" id="f_' + tab + "_" + f.k + '" /></div>';
+  }
+  function buildForm(tab) {
+    const cfg = TABS[tab];
+    const box = $("fields" + capital(tab));
+    if (!box) return;
+    let html = "";
+    if (cfg.sections) {
+      cfg.sections.forEach((sec) => {
+        html += '<div class="sec-title">' + escapeHtml(sec.title) + "</div>";
+        sec.fields.forEach((f) => { html += fieldHtml(tab, f); });
+      });
+    } else {
+      cfg.fields.forEach((f) => { html += fieldHtml(tab, f); });
+    }
+    box.innerHTML = html;
+  }
+  function capital(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function clearForm(tab) {
+    $("date" + capital(tab)).value = todayISO();
+    TABS[tab].fields.forEach((f) => { const el = $("f_" + tab + "_" + f.k); if (el) el.value = ""; });
+    const n = $("note" + capital(tab)); if (n) n.value = "";
+    editIdx[tab] = null;
+    $("title" + capital(tab)).textContent = "Nuova misurazione";
+    $("btnSave" + capital(tab)).textContent = "Salva misurazione";
+    $("btnCancel" + capital(tab)).style.display = "none";
+    msg(tab, "");
+  }
+  function fillForm(tab, r) {
+    $("date" + capital(tab)).value = r.date || todayISO();
+    TABS[tab].fields.forEach((f) => {
+      const el = $("f_" + tab + "_" + f.k);
+      if (el) el.value = (r[f.k] === null || r[f.k] === undefined) ? "" : r[f.k];
+    });
+    const n = $("note" + capital(tab)); if (n) n.value = r.note || "";
+  }
+  function msg(tab, text, cls) {
+    const el = $("msg" + capital(tab));
+    if (!el) return;
+    el.textContent = text || "";
+    el.style.color = cls === "bad" ? "var(--bad)" : (cls === "good" ? "var(--good)" : "var(--muted)");
+  }
+
+  function saveMeasure(tab) {
+    const date = $("date" + capital(tab)).value;
+    if (!date) { msg(tab, "Inserisci la data della misurazione.", "bad"); return; }
+    const rec = { date: date };
+    let filled = 0;
+    TABS[tab].fields.forEach((f) => {
+      const el = $("f_" + tab + "_" + f.k);
+      const v = el ? numOrNull(el.value) : null;
+      rec[f.k] = v;
+      if (v !== null) filled++;
+    });
+    const note = ($("note" + capital(tab)).value || "").trim();
+    if (note) rec.note = note;
+    if (!filled) { msg(tab, "Inserisci almeno un valore.", "bad"); return; }
+    if (rec.bmi === null) rec.bmi = calcBmi(rec.peso);
+
+    const list = state[TABS[tab].list];
+    if (editIdx[tab] !== null && list[editIdx[tab]]) {
+      list[editIdx[tab]] = rec;
+    } else {
+      const dup = list.findIndex((r) => r.date === date);
+      if (dup >= 0) {
+        if (!confirm("Esiste già una misurazione del " + fmtDate(date) + ".\nVuoi sostituirla?")) return;
+        list[dup] = rec;
+      } else {
+        list.push(rec);
+      }
+    }
+    list.sort((a, b) => dateVal(b.date) - dateVal(a.date));
+    save();
+    clearForm(tab);
+    renderTab(tab);
+    msg(tab, "Misurazione salvata ✓", "good");
+  }
+
+  // ---- riepilogo ----
+  function renderSummary(tab) {
+    const box = $("sum" + capital(tab));
+    const goalBox = $("goal" + capital(tab));
+    const rows = sortedRows(tab);
+    if (!rows.length) {
+      box.innerHTML = '<div class="empty" style="grid-column:1/-1;">Nessuna misurazione: aggiungine una qui sotto.</div>';
+      goalBox.textContent = "Nessuna misurazione registrata.";
+      return;
+    }
+    const last = rows[rows.length - 1];
+    const prev = rows.length > 1 ? rows[rows.length - 2] : null;
+    const flds = TABS[tab].fields.slice();
+    if (tab === "nutri") flds.push({ k: "totale", l: "Totale misure", u: "", dec: 1 });
+
+    let html = "";
+    flds.forEach((f) => {
+      const cur = f.k === "totale" ? totale(last) : numOrNull(last[f.k]);
+      if (cur === null) return;
+      const old = prev ? (f.k === "totale" ? totale(prev) : numOrNull(prev[f.k])) : null;
+      let d = "";
+      if (old !== null) {
+        const diff = Math.round((cur - old) * 100) / 100;
+        if (diff === 0) d = '<div class="d muted">=</div>';
+        else {
+          const good = LOWER_BETTER[f.k] ? diff < 0 : diff > 0;
+          d = '<div class="d ' + (good ? "pos" : "neg") + '">' + (diff > 0 ? "+" : "") + fmt(diff, f.dec) + "</div>";
+        }
+      }
+      html += '<div class="stat small"><div class="k">' + escapeHtml(f.l) + "</div><div class=\"v neu\">" +
+        fmt(cur, f.dec) + (f.u ? ' <span class="muted" style="font-size:12px;">' + escapeHtml(f.u) + "</span>" : "") +
+        "</div>" + d + "</div>";
+    });
+    box.innerHTML = html || '<div class="empty" style="grid-column:1/-1;">Nessun valore in questa misurazione.</div>';
+
+    const start = numOrNull(state.cfg.start);
+    const goal = numOrNull(state.cfg.goal);
+    const cur = numOrNull(last.peso);
+    let note = "Ultima misurazione: <b>" + fmtDate(last.date) + "</b> · registrate <b>" + rows.length + "</b> rilevazioni.";
+    if (cur !== null && start !== null) {
+      const lost = Math.round((start - cur) * 10) / 10;
+      note += "<br>Dal peso di partenza (" + fmt(start, 1) + " kg): <b class=\"" + (lost > 0 ? "pos" : (lost < 0 ? "neg" : "neu")) + "\">" +
+        (lost > 0 ? "−" : (lost < 0 ? "+" : "")) + fmt(Math.abs(lost), 1) + " kg</b>.";
+    }
+    if (cur !== null && goal !== null) {
+      const togo = Math.round((cur - goal) * 10) / 10;
+      note += togo > 0
+        ? " Mancano <b>" + fmt(togo, 1) + " kg</b> all'obiettivo di " + fmt(goal, 1) + " kg."
+        : " <b class=\"pos\">Obiettivo raggiunto!</b>";
+    }
+    if (last.note) note += '<br><span class="muted">Nota: ' + escapeHtml(last.note) + "</span>";
+    goalBox.innerHTML = note;
+  }
+
+  // ---- tabella ----
+  function renderTable(tab) {
+    const flds = TABS[tab].fields;
+    const thead = $("thead" + capital(tab));
+    const tbody = $("tbody" + capital(tab));
+    let head = "<tr><th>Data</th>";
+    flds.forEach((f) => { head += "<th>" + escapeHtml(f.l) + (f.u ? " (" + escapeHtml(f.u) + ")" : "") + "</th>"; });
+    if (tab === "nutri") head += "<th>Totale</th>";
+    head += "<th></th></tr>";
+    thead.innerHTML = head;
+
+    const rows = (state[TABS[tab].list] || []).slice().sort((a, b) => dateVal(b.date) - dateVal(a.date));
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="' + (flds.length + 3) + '" class="empty">Nessuna misurazione registrata.</td></tr>';
+      return;
+    }
+    const orig = state[TABS[tab].list];
+    let html = "";
+    rows.forEach((r) => {
+      const i = orig.indexOf(r);
+      html += "<tr><td>" + fmtDate(r.date) + (r.note ? ' <span class="muted" title="' + escapeHtml(r.note) + '">📝</span>' : "") + "</td>";
+      flds.forEach((f) => { html += "<td>" + fmt(r[f.k], f.dec) + "</td>"; });
+      if (tab === "nutri") html += "<td><b>" + fmt(totale(r), 1) + "</b></td>";
+      html += '<td><span class="rowbtns"><button class="edit" data-act="edit" data-i="' + i + '" title="Modifica">✏️</button>' +
+        '<button class="del" data-act="del" data-i="' + i + '" title="Elimina">✕</button></span></td></tr>';
+    });
+    tbody.innerHTML = html;
+  }
+
+  // ---- grafico ----
+  function metricList(tab) {
+    const l = TABS[tab].fields.slice();
+    if (tab === "nutri") l.push({ k: "totale", l: "Totale misure", u: "", dec: 1 });
+    return l;
+  }
+  function renderMetrics(tab) {
+    const box = $("metrics" + capital(tab));
+    const cur = state.chart[tab] || "peso";
+    box.innerHTML = metricList(tab).map((f) =>
+      '<button data-mk="' + f.k + '" class="' + (f.k === cur ? "" : "ghost") + '">' + escapeHtml(f.l) + "</button>"
+    ).join("");
+  }
+  function renderChart(tab) {
+    const cv = $("chart" + capital(tab));
+    const hint = $("hint" + capital(tab));
+    if (!cv) return;
+    const key = state.chart[tab] || "peso";
+    const f = metricList(tab).filter((x) => x.k === key)[0] || { l: key, u: "", dec: 1 };
+    const rows = sortedRows(tab);
+    const pts = [];
+    rows.forEach((r) => {
+      const v = key === "totale" ? totale(r) : numOrNull(r[key]);
+      if (v !== null) pts.push({ t: dateVal(r.date), y: v, d: r.date });
+    });
+
+    const w = Math.max(cv.clientWidth || cv.parentNode.clientWidth || 320, 260);
+    const h = 280;
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    cv.style.height = h + "px";
+    const ctx = cv.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    if (pts.length < 1) {
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "14px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Nessun dato per «" + f.l + "».", w / 2, h / 2);
+      if (hint) hint.textContent = "";
+      return;
+    }
+
+    const padL = 48, padR = 14, padT = 18, padB = 30;
+    const cw = w - padL - padR, ch = h - padT - padB;
+    let minY = Math.min.apply(null, pts.map((p) => p.y));
+    let maxY = Math.max.apply(null, pts.map((p) => p.y));
+    if (minY === maxY) { minY -= 1; maxY += 1; }
+    const span = maxY - minY;
+    minY -= span * 0.12; maxY += span * 0.12;
+    const minT = pts[0].t, maxT = pts[pts.length - 1].t;
+    const X = (t) => padL + (maxT === minT ? cw / 2 : ((t - minT) / (maxT - minT)) * cw);
+    const Y = (v) => padT + ch - ((v - minY) / (maxY - minY)) * ch;
+
+    // griglia + etichette asse Y
+    ctx.strokeStyle = "#334155"; ctx.lineWidth = 1;
+    ctx.fillStyle = "#94a3b8"; ctx.font = "11px system-ui, sans-serif"; ctx.textAlign = "right";
+    for (let i = 0; i <= 4; i++) {
+      const v = minY + ((maxY - minY) * i) / 4;
+      const y = Y(v);
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+      ctx.fillText(fmt(v, f.dec), padL - 8, y + 4);
+    }
+
+    // area + linea
+    if (pts.length > 1) {
+      const grad = ctx.createLinearGradient(0, padT, 0, padT + ch);
+      grad.addColorStop(0, "rgba(56,189,248,.30)");
+      grad.addColorStop(1, "rgba(56,189,248,0)");
+      ctx.beginPath();
+      ctx.moveTo(X(pts[0].t), padT + ch);
+      pts.forEach((p) => ctx.lineTo(X(p.t), Y(p.y)));
+      ctx.lineTo(X(pts[pts.length - 1].t), padT + ch);
+      ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+    }
+    ctx.beginPath();
+    pts.forEach((p, i) => { const x = X(p.t), y = Y(p.y); if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y); });
+    ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 2.4; ctx.lineJoin = "round"; ctx.stroke();
+
+    // punti
+    pts.forEach((p) => {
+      ctx.beginPath(); ctx.arc(X(p.t), Y(p.y), 3.2, 0, Math.PI * 2);
+      ctx.fillStyle = "#0f172a"; ctx.fill();
+      ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 2; ctx.stroke();
+    });
+
+    // etichette asse X (prima, metà, ultima)
+    ctx.fillStyle = "#94a3b8"; ctx.font = "11px system-ui, sans-serif";
+    const idxs = pts.length > 2 ? [0, Math.floor((pts.length - 1) / 2), pts.length - 1] : pts.map((_, i) => i);
+    idxs.forEach((i, n) => {
+      const p = pts[i];
+      ctx.textAlign = n === 0 ? "left" : (n === idxs.length - 1 ? "right" : "center");
+      const dt = new Date(p.t);
+      ctx.fillText(String(dt.getMonth() + 1).padStart(2, "0") + "/" + dt.getFullYear(), X(p.t), h - 10);
+    });
+
+    // ultimo valore evidenziato
+    const lp = pts[pts.length - 1];
+    ctx.fillStyle = "#e2e8f0"; ctx.font = "700 13px system-ui, sans-serif"; ctx.textAlign = "right";
+    ctx.fillText(fmt(lp.y, f.dec) + (f.u ? " " + f.u : ""), w - padR, Math.max(padT + 12, Y(lp.y) - 12));
+
+    if (hint) {
+      const first = pts[0], diff = Math.round((lp.y - first.y) * 100) / 100;
+      const good = LOWER_BETTER[key] ? diff < 0 : diff > 0;
+      hint.innerHTML = "<b>" + escapeHtml(f.l) + "</b>: da " + fmt(first.y, f.dec) + " (" + fmtDate(first.d) + ") a " +
+        fmt(lp.y, f.dec) + " (" + fmtDate(lp.d) + ") · variazione <b class=\"" + (diff === 0 ? "neu" : (good ? "pos" : "neg")) + "\">" +
+        (diff > 0 ? "+" : "") + fmt(diff, f.dec) + (f.u ? " " + escapeHtml(f.u) : "") + "</b>";
+    }
+  }
+
+  function renderTab(tab) {
+    renderSummary(tab);
+    renderTable(tab);
+    renderMetrics(tab);
+    renderChart(tab);
+  }
+  function renderAll() {
+    $("cfgStart").value = state.cfg.start === null || state.cfg.start === undefined ? "" : state.cfg.start;
+    $("cfgGoal").value = state.cfg.goal === null || state.cfg.goal === undefined ? "" : state.cfg.goal;
+    $("cfgHeight").value = state.cfg.height === null || state.cfg.height === undefined ? "" : state.cfg.height;
+    renderTab("bilancia");
+    renderTab("nutri");
+  }
+
+  // ---- import / export ----
+  function download(name, obj) {
+    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 200);
+  }
+  let pendingImport = null;
+  function pickFile(handler) {
+    pendingImport = handler;
+    const f = $("fileImport");
+    f.value = "";
+    f.click();
+  }
+  $("fileImport").addEventListener("change", function () {
+    const file = this.files && this.files[0];
+    if (!file || !pendingImport) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      let data;
+      try { data = JSON.parse(rd.result); }
+      catch (e) { alert("File JSON non valido: " + e.message); return; }
+      try { pendingImport(data); } finally { pendingImport = null; }
+    };
+    rd.readAsText(file);
+  });
+
+  function normalizeRec(o, fields) {
+    if (!o || typeof o !== "object") return null;
+    const rec = {};
+    const d = o.date || o.data || o.giorno || o.Data;
+    if (!d) return null;
+    const t = Date.parse(d);
+    if (isNaN(t)) return null;
+    const dt = new Date(t);
+    rec.date = dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+    let any = false;
+    fields.forEach((f) => {
+      const v = numOrNull(o[f.k]);
+      rec[f.k] = v;
+      if (v !== null) any = true;
+    });
+    if (o.note) rec.note = String(o.note);
+    return any ? rec : null;
+  }
+  function importList(tab, data) {
+    const cfg = TABS[tab];
+    let arr = Array.isArray(data) ? data : (data && (data[cfg.list] || data.rows || data.misurazioni));
+    if (!Array.isArray(arr)) { alert("Nel file non ho trovato una lista di misurazioni."); return; }
+    const mapped = arr.map((o) => normalizeRec(o, cfg.fields)).filter(Boolean);
+    if (!mapped.length) { alert("Nessuna misurazione riconosciuta nel file."); return; }
+    const replace = confirm("Trovate " + mapped.length + " misurazioni.\n\nOK = sostituisci quelle esistenti\nAnnulla = aggiungi a quelle presenti");
+    backupState();
+    const list = state[cfg.list];
+    if (replace) state[cfg.list] = mapped;
+    else {
+      mapped.forEach((m) => {
+        const i = list.findIndex((r) => r.date === m.date);
+        if (i >= 0) list[i] = m; else list.push(m);
+      });
+    }
+    state[cfg.list].sort((a, b) => dateVal(b.date) - dateVal(a.date));
+    save(); renderTab(tab);
+    alert("Importate " + mapped.length + " misurazioni.");
+  }
+
+  // ---- eventi ----
+  ["bilancia", "nutri"].forEach((tab) => {
+    const C = capital(tab);
+    $("btnSave" + C).addEventListener("click", () => saveMeasure(tab));
+    $("btnCancel" + C).addEventListener("click", () => clearForm(tab));
+    $("metrics" + C).addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-mk]");
+      if (!b) return;
+      state.chart[tab] = b.getAttribute("data-mk");
+      save(); renderMetrics(tab); renderChart(tab);
+    });
+    $("tbody" + C).addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-act]");
+      if (!b) return;
+      const i = parseInt(b.getAttribute("data-i"), 10);
+      const list = state[TABS[tab].list];
+      if (isNaN(i) || !list[i]) return;
+      if (b.getAttribute("data-act") === "del") {
+        if (!confirm("Eliminare la misurazione del " + fmtDate(list[i].date) + "?")) return;
+        backupState();
+        list.splice(i, 1);
+        if (editIdx[tab] === i) clearForm(tab);
+        save(); renderTab(tab);
+      } else {
+        editIdx[tab] = i;
+        fillForm(tab, list[i]);
+        $("title" + C).textContent = "Modifica misurazione del " + fmtDate(list[i].date);
+        $("btnSave" + C).textContent = "Aggiorna misurazione";
+        $("btnCancel" + C).style.display = "";
+        $("date" + C).scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+    $("btnExp" + C).addEventListener("click", () => {
+      download("diario-" + tab + "-" + todayISO() + ".json", state[TABS[tab].list]);
+    });
+    $("btnImp" + C).addEventListener("click", () => pickFile((data) => importList(tab, data)));
+    $("btnClr" + C).addEventListener("click", () => {
+      if (!confirm("Azzerare tutte le misurazioni di questa scheda?\n(Viene salvato un backup automatico.)")) return;
+      backupState();
+      state[TABS[tab].list] = [];
+      clearForm(tab); save(); renderTab(tab);
+    });
+  });
+
+  $("btnSeedNutri").addEventListener("click", () => {
+    if (!confirm("Ricaricare lo storico iniziale (" + SEED_NUTRI.length + " rilevazioni dal foglio Weight Tracker)?\nLe misurazioni con la stessa data verranno sostituite.")) return;
+    backupState();
+    const list = state.nutri;
+    SEED_NUTRI.forEach((m) => {
+      const rec = JSON.parse(JSON.stringify(m));
+      const i = list.findIndex((r) => r.date === rec.date);
+      if (i >= 0) list[i] = rec; else list.push(rec);
+    });
+    list.sort((a, b) => dateVal(b.date) - dateVal(a.date));
+    save(); renderTab("nutri");
+    alert("Storico iniziale ricaricato.");
+  });
+
+  ["cfgStart", "cfgGoal", "cfgHeight"].forEach((id) => {
+    $(id).addEventListener("input", () => {
+      state.cfg.start = numOrNull($("cfgStart").value);
+      state.cfg.goal = numOrNull($("cfgGoal").value);
+      state.cfg.height = numOrNull($("cfgHeight").value);
+      save();
+      renderSummary("bilancia"); renderSummary("nutri");
+    });
+  });
+
+  $("btnExportAll").addEventListener("click", () => download("diario-corporeo-" + todayISO() + ".json", state));
+  $("btnImportAll").addEventListener("click", () => pickFile((data) => {
+    if (!data || typeof data !== "object" || (!Array.isArray(data.scale) && !Array.isArray(data.nutri))) {
+      alert("Il file non contiene un backup completo (mancano le liste «scale» e «nutri»)."); return;
+    }
+    if (!confirm("Sostituire tutti i dati locali con quelli del file?\n(Viene salvato un backup automatico.)")) return;
+    backupState();
+    state = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), data);
+    state.cfg = Object.assign({}, DEFAULT_STATE.cfg, data.cfg || {});
+    state.chart = Object.assign({}, DEFAULT_STATE.chart, data.chart || {});
+    if (!Array.isArray(state.scale)) state.scale = [];
+    if (!Array.isArray(state.nutri)) state.nutri = [];
+    save(); clearForm("bilancia"); clearForm("nutri"); renderAll();
+    alert("Dati importati.");
+  }));
+  $("btnRestoreBackup").addEventListener("click", () => {
+    let raw = null;
+    try { raw = localStorage.getItem(BK_KEY); } catch (e) {}
+    if (!raw) { alert("Nessun backup disponibile su questo dispositivo."); return; }
+    if (!confirm("Ripristinare l'ultimo backup automatico?")) return;
+    try {
+      const data = JSON.parse(raw);
+      state = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), data);
+      if (!Array.isArray(state.scale)) state.scale = [];
+      if (!Array.isArray(state.nutri)) state.nutri = [];
+      save(); clearForm("bilancia"); clearForm("nutri"); renderAll();
+      alert("Backup ripristinato.");
+    } catch (e) { alert("Backup non valido."); }
+  });
+
+  let resizeTimer = null;
+  window.addEventListener("resize", () => {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { renderChart("bilancia"); renderChart("nutri"); }, 150);
+  });
+
+  // ================= sincronizzazione cloud =================
+  const EMBEDDED_FB_CONFIG = JSON.stringify({
+    apiKey: "AIzaSyBeQirfiLlK0s8fHhwBmireNfgmoDrC494",
+    authDomain: "sincro-ai.firebaseapp.com",
+    projectId: "sincro-ai",
+    storageBucket: "sincro-ai.firebasestorage.app",
+    messagingSenderId: "191255135738",
+    appId: "1:191255135738:web:5126c1b0752ace5ce15043",
+    measurementId: "G-Y2H894V0R9"
+  }, null, 2);
+  const CLIENT_ID = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  const FB_APP_URL = "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  const FB_STORE_URL = "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  const FB_AUTH_URL = "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+  let fbMods = null;
+  let cloud = { app: null, db: null, auth: null, user: null, docRef: null, unsub: null, connected: false, applyingRemote: false, uploadTimer: null };
+
+  function fbStatus(text, cls) {
+    const el = $("fbStatus");
+    if (!el) return;
+    el.textContent = text;
+    el.className = "note" + (cls ? " " + cls : "");
+  }
+  async function loadFirebase() {
+    if (fbMods) return fbMods;
+    const appMod = await import(FB_APP_URL);
+    const storeMod = await import(FB_STORE_URL);
+    const authMod = await import(FB_AUTH_URL);
+    fbMods = { appMod, storeMod, authMod };
+    return fbMods;
+  }
+  function scheduleCloudUpload() {
+    if (!cloud.connected || cloud.applyingRemote) return;
+    if (cloud.uploadTimer) clearTimeout(cloud.uploadTimer);
+    cloud.uploadTimer = setTimeout(uploadState, 800);
+  }
+  async function uploadState() {
+    if (!cloud.connected || !cloud.docRef) return;
+    if (isEmptyState(state)) return; // non sovrascrivere mai dati reali con uno stato vuoto
+    try {
+      const { setDoc } = fbMods.storeMod;
+      await setDoc(cloud.docRef, {
+        state: JSON.stringify(state),
+        updatedAt: lastLocalChange,
+        client: CLIENT_ID,
+        savedAt: Date.now()
+      });
+      fbStatus("Sincronizzato ✓ (" + new Date().toLocaleTimeString("it-IT") + ")", "");
+    } catch (e) {
+      fbStatus("Errore invio dati: " + (e && e.message ? e.message : e), "bad");
+    }
+  }
+  function applyRemoteState(remote) {
+    try {
+      const parsed = JSON.parse(remote.state);
+      if (isEmptyState(parsed) && !isEmptyState(state)) {
+        fbStatus("Ignorati dati cloud vuoti (mantenuti i dati locali).", "warn");
+        return;
+      }
+      cloud.applyingRemote = true;
+      state = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), parsed);
+      state.cfg = Object.assign({}, DEFAULT_STATE.cfg, parsed.cfg || {});
+      state.chart = Object.assign({}, DEFAULT_STATE.chart, parsed.chart || {});
+      if (!Array.isArray(state.scale)) state.scale = [];
+      if (!Array.isArray(state.nutri)) state.nutri = [];
+      lastLocalChange = remote.updatedAt || Date.now();
+      localStorage.setItem(LS_KEY, JSON.stringify(state));
+      localStorage.setItem(LS_KEY + "_updatedAt", String(lastLocalChange));
+      editIdx = { bilancia: null, nutri: null };
+      clearForm("bilancia"); clearForm("nutri");
+      renderAll();
+      cloud.applyingRemote = false;
+      fbStatus("Aggiornato dal cloud ✓ (" + new Date().toLocaleTimeString("it-IT") + ")", "");
+    } catch (e) {
+      cloud.applyingRemote = false;
+      fbStatus("Dati remoti non validi.", "bad");
+    }
+  }
+  function fbSetUser(user) {
+    const el = $("fbUser");
+    if (!el) return;
+    if (user) el.innerHTML = "Connesso come <b>" + escapeHtml(user.email || user.displayName || user.uid) + "</b>";
+    else el.textContent = "Non hai effettuato l'accesso.";
+  }
+  async function ensureFirebaseInit() {
+    const rawCfg = ($("fbConfig").value || localStorage.getItem(CLOUD_CFG_KEY) || EMBEDDED_FB_CONFIG || "").trim();
+    if (!rawCfg) { fbStatus("Inserisci prima la configurazione Firebase.", "warn"); return false; }
+    let cfg;
+    try { cfg = JSON.parse(rawCfg); }
+    catch (e) { fbStatus("Configurazione Firebase non è JSON valido.", "bad"); return false; }
+    if (!cloud.app) {
+      const { appMod, storeMod, authMod } = await loadFirebase();
+      cloud.app = appMod.initializeApp(cfg, "corpo-app");
+      cloud.db = storeMod.getFirestore(cloud.app);
+      cloud.auth = authMod.getAuth(cloud.app);
+      localStorage.setItem(CLOUD_CFG_KEY, rawCfg);
+      authMod.onAuthStateChanged(cloud.auth, (user) => handleAuthChange(user));
+    }
+    return true;
+  }
+  function handleAuthChange(user) {
+    cloud.user = user;
+    if (user) { fbSetUser(user); startSync(user.uid); }
+    else { fbSetUser(null); stopSync(); fbStatus("Non connesso.", ""); }
+  }
+  function startSync(uid) {
+    const { doc, onSnapshot } = fbMods.storeMod;
+    stopSync();
+    cloud.docRef = doc(cloud.db, "bodyStates", uid);
+    cloud.connected = true;
+    cloud.unsub = onSnapshot(cloud.docRef, (snap) => {
+      if (!snap.exists()) {
+        if (!isEmptyState(state)) { uploadState(); fbStatus("Connesso. Caricati in cloud i dati locali.", ""); }
+        else fbStatus("Connesso. In attesa di dati…", "");
+        return;
+      }
+      const data = snap.data();
+      if (data.client === CLIENT_ID) return; // eco della nostra scrittura
+      let remoteState = null;
+      try { remoteState = JSON.parse(data.state); } catch (e) {}
+      const remoteEmpty = isEmptyState(remoteState);
+      const localEmpty = isEmptyState(state);
+      const rt = data.updatedAt || 0;
+      if (remoteEmpty && !localEmpty) { uploadState(); return; }
+      if (!remoteEmpty && localEmpty) { applyRemoteState(data); return; }
+      if (rt > lastLocalChange) applyRemoteState(data);
+      else if (rt < lastLocalChange) uploadState();
+    }, (err) => {
+      fbStatus("Errore sincronizzazione: " + (err && err.message ? err.message : err), "bad");
+    });
+    fbStatus("Sincronizzazione attiva ✓ (" + new Date().toLocaleTimeString("it-IT") + ")", "");
+  }
+  function stopSync() {
+    if (cloud.unsub) { try { cloud.unsub(); } catch (e) {} }
+    cloud.unsub = null;
+    cloud.connected = false;
+    cloud.docRef = null;
+    if (cloud.uploadTimer) { clearTimeout(cloud.uploadTimer); cloud.uploadTimer = null; }
+  }
+  async function googleLogin() {
+    fbStatus("Accesso in corso…", "");
+    if (!(await ensureFirebaseInit())) return;
+    try {
+      const { GoogleAuthProvider, signInWithPopup, signInWithRedirect } = fbMods.authMod;
+      const provider = new GoogleAuthProvider();
+      try {
+        await signInWithPopup(cloud.auth, provider);
+      } catch (popupErr) {
+        const info = String((popupErr && (popupErr.code || popupErr.message)) || "");
+        if (/popup|blocked|cancelled|operation-not-supported|closed/i.test(info)) {
+          await signInWithRedirect(cloud.auth, provider);
+        } else throw popupErr;
+      }
+    } catch (e) {
+      fbStatus("Accesso fallito: " + (e && e.message ? e.message : e), "bad");
+    }
+  }
+  async function googleLogout() {
+    try { if (cloud.auth) { const { signOut } = fbMods.authMod; await signOut(cloud.auth); } } catch (e) {}
+    stopSync(); fbSetUser(null);
+    fbStatus("Uscito. I dati restano salvati in locale su questo dispositivo.", "");
+  }
+  $("btnGoogleLogin").addEventListener("click", googleLogin);
+  $("btnGoogleLogout").addEventListener("click", googleLogout);
+
+  // ---- schede ----
+  const TAB_NAMES = ["bilancia", "nutri", "account"];
+  function switchTab(name) {
+    if (TAB_NAMES.indexOf(name) < 0) name = "bilancia";
+    document.querySelectorAll("[data-tab]").forEach((el) => {
+      el.style.display = (el.getAttribute("data-tab") === name) ? "" : "none";
+    });
+    document.querySelectorAll(".tabbtn").forEach((b) => {
+      b.classList.toggle("active", b.getAttribute("data-go") === name);
+    });
+    try { localStorage.setItem(TAB_KEY, name); } catch (e) {}
+    window.scrollTo(0, 0);
+    // il canvas ha larghezza 0 finché è nascosto: va ridisegnato quando la scheda diventa visibile
+    if (name === "bilancia" || name === "nutri") renderChart(name);
+  }
+  function initTabs() {
+    document.querySelectorAll(".tabbtn").forEach((b) => {
+      b.addEventListener("click", () => switchTab(b.getAttribute("data-go")));
+    });
+    switchTab(localStorage.getItem(TAB_KEY) || "bilancia");
+  }
+
+  // ---- init ----
+  load();
+  buildForm("bilancia");
+  buildForm("nutri");
+  clearForm("bilancia");
+  clearForm("nutri");
+  renderAll();
+  initTabs();
+
+  const savedCfg = localStorage.getItem(CLOUD_CFG_KEY) || EMBEDDED_FB_CONFIG;
+  if (savedCfg) {
+    $("fbConfig").value = savedCfg;
+    ensureFirebaseInit().then(async (ok) => {
+      if (!ok) return;
+      try { await fbMods.authMod.getRedirectResult(cloud.auth); } catch (e) {}
+    });
+  }
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    });
+  }
+})();
+</script>
+</body>
+</html>
