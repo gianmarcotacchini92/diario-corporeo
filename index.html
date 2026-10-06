@@ -431,6 +431,7 @@
   <div class="card" style="margin-bottom:16px;" data-tab="bilancia">
     <h2><span class="ico">📈</span> Andamento</h2>
     <div class="metricbtns" id="metricsBilancia"></div>
+    <div class="metricbtns" id="rangeBilancia"></div>
     <div class="chartbox">
       <canvas id="chartBilancia" class="base" height="280"></canvas>
       <canvas id="ovBilancia" class="ov" height="280"></canvas>
@@ -476,6 +477,7 @@
   <div class="card" style="margin-bottom:16px;" data-tab="nutri">
     <h2><span class="ico">📈</span> Andamento</h2>
     <div class="metricbtns" id="metricsNutri"></div>
+    <div class="metricbtns" id="rangeNutri"></div>
     <div class="chartbox">
       <canvas id="chartNutri" class="base" height="280"></canvas>
       <canvas id="ovNutri" class="ov" height="280"></canvas>
@@ -599,6 +601,13 @@
   // Metriche in cui un valore più basso è un miglioramento.
   const LOWER_BETTER = { peso: 1, grasso: 1, viscerale: 1, etaMet: 1, bmi: 1, totale: 1 };
   F_CIRC.concat(F_PLIC).forEach((f) => { LOWER_BETTER[f.k] = 1; });
+  const CHART_RANGES = [
+    { id: "1m", label: "1 mese", months: 1 },
+    { id: "3m", label: "3 mesi", months: 3 },
+    { id: "6m", label: "6 mesi", months: 6 },
+    { id: "1y", label: "1 anno", months: 12 },
+    { id: "max", label: "Max", months: null }
+  ];
 
   const TABS = {
     bilancia: { list: "scale", fields: F_SCALE, sections: null },
@@ -620,7 +629,7 @@
   const SEED_TS = Date.parse("2025-12-20T12:00:00Z");
 
   // ---- stato ----
-  const DEFAULT_STATE = { cfg: { start: 82.6, goal: 72, height: 166 }, scale: [], nutri: [], chart: { bilancia: "peso", nutri: "peso" } };
+  const DEFAULT_STATE = { cfg: { start: 82.6, goal: 72, height: 166 }, scale: [], nutri: [], chart: { bilancia: "peso", nutri: "peso", range: { bilancia: "max", nutri: "max" } } };
   let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
   let editIdx = { bilancia: null, nutri: null };
   let lastLocalChange = parseInt(localStorage.getItem(LS_KEY + "_updatedAt") || "0", 10) || 0;
@@ -697,6 +706,7 @@
         state = Object.assign(JSON.parse(JSON.stringify(DEFAULT_STATE)), parsed);
         state.cfg = Object.assign({}, DEFAULT_STATE.cfg, parsed.cfg || {});
         state.chart = Object.assign({}, DEFAULT_STATE.chart, parsed.chart || {});
+        state.chart.range = Object.assign({}, DEFAULT_STATE.chart.range, (parsed.chart && parsed.chart.range) || {});
         if (!Array.isArray(state.scale)) state.scale = [];
         if (!Array.isArray(state.nutri)) state.nutri = [];
         return;
@@ -892,6 +902,33 @@
       '<button data-mk="' + f.k + '" class="' + (f.k === cur ? "" : "ghost") + '">' + escapeHtml(f.l) + "</button>"
     ).join("");
   }
+  function rangeStart(rangeId, now = new Date()) {
+    if (rangeId === "max") return -Infinity;
+    const months = CHART_RANGES.find((r) => r.id === rangeId)?.months;
+    if (months === undefined || months === null) return -Infinity;
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    const day = start.getDate();
+    start.setDate(1);
+    start.setMonth(start.getMonth() - months);
+    const lastDay = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
+    start.setDate(Math.min(day, lastDay));
+    return start.getTime();
+  }
+  function filteredRows(tab) {
+    const rows = sortedRows(tab);
+    const rangeId = state.chart.range && state.chart.range[tab] ? state.chart.range[tab] : "max";
+    if (rangeId === "max") return rows;
+    const start = rangeStart(rangeId);
+    return rows.filter((r) => dateVal(r.date) >= start);
+  }
+  function renderRangeButtons(tab) {
+    const box = $("range" + capital(tab));
+    const cur = state.chart.range && state.chart.range[tab] ? state.chart.range[tab] : "max";
+    box.innerHTML = CHART_RANGES.map((r) =>
+      '<button data-range="' + r.id + '" class="' + (r.id === cur ? "" : "ghost") + '">' + escapeHtml(r.label) + "</button>"
+    ).join("");
+  }
   function cssVar(name) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   }
@@ -991,7 +1028,7 @@
     if (!cv) return;
     const key = state.chart[tab] || "peso";
     const f = metricList(tab).filter((x) => x.k === key)[0] || { l: key, u: "", dec: 1 };
-    const rows = sortedRows(tab);
+    const rows = filteredRows(tab);
     const pts = [];
     rows.forEach((r) => {
       const v = key === "totale" ? totale(r) : numOrNull(r[key]);
@@ -1103,6 +1140,7 @@
     renderSummary(tab);
     renderTable(tab);
     renderMetrics(tab);
+    renderRangeButtons(tab);
     renderChart(tab);
   }
   function renderAll() {
@@ -1191,6 +1229,13 @@
       if (!b) return;
       state.chart[tab] = b.getAttribute("data-mk");
       save(); renderMetrics(tab); renderChart(tab);
+    });
+    $("range" + C).addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-range]");
+      if (!b) return;
+      if (!state.chart.range) state.chart.range = {};
+      state.chart.range[tab] = b.getAttribute("data-range");
+      save(); renderRangeButtons(tab); renderChart(tab);
     });
     $("tbody" + C).addEventListener("click", (e) => {
       const b = e.target.closest("button[data-act]");
